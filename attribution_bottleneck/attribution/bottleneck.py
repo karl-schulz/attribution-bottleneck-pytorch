@@ -19,7 +19,6 @@ class AttributionBottleneckReader(AttributionMethod):
         self.beta = beta
         self.batch_size = batch_size
         self.progbar = progbar
-        self.show_steps = False
         self.device = list(model.parameters())[0].device
         self.lr = lr
         self.train_steps = steps
