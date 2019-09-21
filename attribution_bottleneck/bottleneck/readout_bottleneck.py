@@ -4,9 +4,121 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch import autograd
 
-from information.fitted_bottleneck import KLStdNormalBottleneck, Bottleneck
-from models.layers import SpatialGaussianKernel
-from utils.misc import replace_layer
+from attribution_bottleneck.bottleneck.gaussian_kernel import SpatialGaussianKernel
+from attribution_bottleneck.utils.misc import replace_layer
+
+import torch.nn as nn
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib import pyplot
+
+
+class KLStdNormalBottleneck(nn.Module):
+    """
+    Bottleneck KL[Q(z|x)||P(z)] where P(z) = N(0, 1) and Q(z|x) = N(mu(x), log_noise_var(x))
+    """
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, mu, log_noise_var, force_noise=False):
+        """ return mu with additive noise """
+        log_noise_var = torch.clamp(log_noise_var, -10, 10)
+        noise_std = (log_noise_var / 2).exp()
+        eps = mu.data.new(mu.size()).normal_()
+        if self.training or force_noise:
+            return mu + noise_std * eps
+        else:
+            return mu
+
+    def capacity(self, mu, log_var) -> torch.Tensor:
+        # KL[Q(z|x)||P(z)]
+        # 0.5 * (tr(noise_cov) + mu ^ T mu - k  -  log det(noise)
+        return -0.5 * (1 + log_var - mu**2 - log_var.exp())
+
+
+class Bottleneck(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+        self.buffer_capacity = None  # filled on forward pass, used for loss
+        self.buffer_mu = None  # filled on forward pass
+        self.buffer_log_var = None  # filled on forward pass
+        self.buffer_tensors = {}
+
+    def _buffer(self, cap, mu, log_var):
+        self.buffer_capacity = cap
+        self.buffer_mu = mu
+        self.buffer_log_var = log_var
+
+
+class BottleneckAdaptive(Bottleneck):
+    def __init__(self, mean: np.ndarray, std: np.ndarray, sigma=None, device=None, relu=False):
+        super().__init__()
+        self.bottleneck = KLStdNormalBottleneck()
+        self.device = device
+        self.relu = relu
+        self.initial_value = 5.0
+        self.std = torch.tensor(std, dtype=torch.float, device=self.device, requires_grad=False)
+        self.mean = torch.tensor(mean, dtype=torch.float, device=self.device, requires_grad=False)
+        self.alpha = nn.Parameter(torch.full((1, *self.mean.shape), fill_value=self.initial_value, device=self.device))
+        self.sigmoid = nn.Sigmoid()
+        self.store_buffers = False
+        self.normalize_empirically = True
+        self.normalize_sample = False
+
+        if sigma is not None:
+
+            # Construct static conv layer with gaussian kernel
+            kernel_size = int(round(2 * sigma)) * 2 + 1  # Cover 2.5 stds in both directions
+            channels = self.mean.shape[0]
+
+            self.smooth = SpatialGaussianKernel(kernel_size, sigma, channels, device=self.device)
+        else:
+            self.smooth = None
+
+        self.reset()
+
+    def reset(self):
+        """ Used to reset the mask to train on another sample """
+        with torch.no_grad():
+            self.alpha.fill_(self.initial_value)
+        return self.alpha
+
+    def forward(self, x):
+
+        # Clamp, smoothen and fit a
+        a_raw = self.sigmoid(self.alpha)
+        a_fit = a_raw.expand(x.shape[0], x.shape[1], -1, -1)
+        a = self.smooth(a_fit) if self.smooth is not None else a_fit
+
+        # Normalize x
+        x_norm = (x - self.mean) / self.std
+
+        # Get parameters
+        mu, log_var = x_norm * a, torch.log(1-a)
+
+        # Calc BN
+        z_norm = self.bottleneck(mu, log_var, True)
+        cap = self.bottleneck.capacity(mu, log_var)
+
+        # Denormalize x
+        z = z_norm * self.std + self.mean
+
+        # Maybe relu
+        if self.relu:
+            z = torch.clamp(z, 0.0)
+
+        if self.store_buffers:
+            self.buffer_tensors["x"] = x.clone()
+            self.buffer_tensors["x_norm"] = x_norm.clone()
+            self.buffer_tensors["xz_norm"] = (x_norm - z_norm).clone()
+            self.buffer_tensors["a_fit"] = a_fit.clone()
+            self.buffer_tensors["a"] = a.clone()
+            self.buffer_tensors["z_norm"] = z_norm.clone()
+            self.buffer_tensors["z"] = z.clone()
+        self._buffer(mu=mu, log_var=log_var, cap=cap)
+
+        return z
 
 
 class ReadoutBottleneck(Bottleneck):
@@ -207,8 +319,10 @@ class AdaptiveReadoutBottleneck(ReadoutBottleneck):
     @classmethod
     def load_path(cls, model, layers, path):
         """ Load a bottleneck from a file """
-        state = torch.load(path)
+        device = next(model.parameters()).device
+        state = torch.load(path, map_location=device)
         return cls.load(model, layers, state["model_state"], state["shapes"], state["kernel_size"])
+
 
 class ShallowAdaptiveReadoutBottleneck(AdaptiveReadoutBottleneck):
     def __init__(self, *args, **kwargs):

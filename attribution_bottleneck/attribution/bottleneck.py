@@ -4,15 +4,15 @@ import torch.nn.functional as F
 from tqdm import tqdm
 
 from attribution_bottleneck.bottleneck.estimator import ReluEstimator
-from ..attribution.base import *
-from ..bottleneck.attribution_bottleneck import AttributionBottleneck
-from ..bottleneck.estimator import Estimator
-from ..utils.misc import resize, replace_layer, to_np
+from attribution_bottleneck.attribution.base import AttributionMethod
+from attribution_bottleneck.bottleneck.per_sample_bottleneck import PerSampleBottleneck
+from attribution_bottleneck.bottleneck.estimator import Estimator
+from attribution_bottleneck.utils.misc import resize, replace_layer, to_np
 
 
-class AttributionBottleneckReader(AttributionMethod):
-
-    def __init__(self, model, estim: Estimator, beta=10, steps=20, lr=0.3, batch_size=10, sigma=0.5, progbar=False):
+class PerSampleBottleneckReader(AttributionMethod):
+    def __init__(self, model, estim: Estimator, beta=10, steps=10, lr=1, batch_size=10,
+                 sigma=0.5, mode="capacity", progbar=False):
         self.model = model
         self.original_layer = estim.get_layer()
         self.shape = estim.shape()
@@ -22,7 +22,8 @@ class AttributionBottleneckReader(AttributionMethod):
         self.device = list(model.parameters())[0].device
         self.lr = lr
         self.train_steps = steps
-        self.bottleneck = AttributionBottleneck(estim.mean(), estim.std(), device=self.device, sigma=sigma, relu=isinstance(estim, ReluEstimator))
+        self.bottleneck = PerSampleBottleneck(estim.mean(), estim.std(), device=self.device,
+                                              sigma=sigma, relu=isinstance(estim, ReluEstimator))
         self.sequential = nn.Sequential(self.original_layer, self.bottleneck)
 
     def heatmap(self, input_t, target):
@@ -62,7 +63,8 @@ class AttributionBottleneckReader(AttributionMethod):
 
         # Train
         self.model.eval()
-        for _ in tqdm(range(self.train_steps), desc="Training Bottleneck", disable=not self.progbar):
+        for _ in tqdm(range(self.train_steps), desc="Training Bottleneck",
+                      disable=not self.progbar):
             optimizer.zero_grad()
             out = self.model(batch[0])
             loss_t = self.calc_loss(outputs=out, labels=batch[1])

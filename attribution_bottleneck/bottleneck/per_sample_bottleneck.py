@@ -4,7 +4,7 @@ import numpy as np
 from ..bottleneck.gaussian_kernel import SpatialGaussianKernel
 
 
-class AttributionBottleneck(nn.Module):
+class PerSampleBottleneck(nn.Module):
     """
     The Attribution Bottleneck.
     Is inserted in a existing model to suppress information, parametrized by a suppression mask alpha.

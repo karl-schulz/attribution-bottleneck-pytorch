@@ -1,17 +1,17 @@
+from attribution_bottleneck.attribution.backprop import Gradient, GradientTimesInput
+from attribution_bottleneck.attribution.guided_backprop import GuidedBackprop, DeconvNet
+from attribution_bottleneck.attribution.integrating import IntegratedGradients, SmoothGrad
+from attribution_bottleneck.attribution.grad_cam import GradCAM, GuidedGradCAM
+from attribution_bottleneck.attribution.occlusion import Occlusion
+from attribution_bottleneck.attribution.pattern import PatternAttribution
+from attribution_bottleneck.attribution.lrp import LRP
+from attribution_bottleneck.attribution.misc import Random, Zero
+from attribution_bottleneck.utils.baselines import Mean
+import torch
 from torch.nn import Softmax
-
-from attribution_bottleneck.attribution.base import Zero, Random
-from ..attribution.backprop import Gradient, GradientTimesInput
-from ..attribution.guided_backprop import *
-from ..attribution.integrating import *
-from ..attribution.grad_cam import *
-from ..attribution.occlusion import Occlusion
-from ..attribution.pattern import *
-from ..utils.baselines import Mean
 
 
 class Factory:
-
     def __init__(self, model: torch.nn.Module):
         self.model = model
         self.device = next(model.parameters()).device
@@ -27,45 +27,52 @@ class Factory:
         return Zero()
 
     def Gradient(self):
-        return Gradient(self.model)
+        return Gradient(self.model, cc_transforms=["sum"])
 
     def GradientTimesInput(self):
         """ https://arxiv.org/abs/1605.01713 """
-        return GradientTimesInput(self.model)
+        return GradientTimesInput(self.model, cc_transforms=["sum"])
 
     def PatternAttribution(self):
+        assert hasattr(self.model, "features") and hasattr(self.model, "classifier"), \
+                "PatternAttribution requires VGG"
         return PatternAttribution(self.model)
+
+    def LRP(self):
+        return LRP(self.model, eps=5, beta=-1, device=self.device)
 
     def Saliency(self):
         """ https://arxiv.org/abs/1312.6034 """
-        return Gradient(self.model)
+        return Gradient(self.model, cc_transforms=["abs", "max"])
 
     def GuidedBackprop(self):
         """ https://arxiv.org/abs/1412.6806 """
-        return GuidedBackprop(self.model)
+        return GuidedBackprop(self.model, cc_transforms=["abs", "max"])
 
     def DeconvNet(self):
-        """ https://arxiv.org/abs/1412.6806 """
-        return DeconvNet(self.model)
+        """ TODO CITATION """
+        return DeconvNet(self.model, cc_transforms=["abs", "max"])
 
     def IntegratedGradients(self):
         """ https://arxiv.org/abs/1703.01365 """
-        return IntegratedGradients(Saliency(self.model))
+        # todo ist nicht gut, etwas fehlt wohl
+        return IntegratedGradients(Gradient(self.model), baseline=Mean(), steps=50,
+                                   cc_transforms=["abs", "max"])
 
     def Occlusion(self, patch_size):
         """ TODO CITATION """
-        return Occlusion(self.model, size=patch_size)
+        return Occlusion(self.model, size=patch_size, baseline=Mean())
 
     def SmoothGrad(self):
         """ https://arxiv.org/abs/1706.03825 """
-        return SmoothGrad(Saliency(self.model))
+        # welche transforms?
+        return SmoothGrad(Gradient(self.model), std=0.15, steps=50, cc_transforms=["abs", "max"])
 
     def GradCAM(self, layer):
         """ https://arxiv.org/abs/1610.02391 """
-        return GradCAM(self.model, layer=layer)
+        return GradCAM(self.model, layer=layer, interp="bilinear")
 
-    def InfoBottleneck(self):
-        raise NotImplementedError
-
-    def InfoReadout(self):
-        raise NotImplementedError
+    def GuidedGradCAM(self, gradcam_layer):
+        """ https://arxiv.org/abs/1412.6806 """
+        return GuidedGradCAM(self.model, gradcam_layer=gradcam_layer, gradcam_interp='bilinear',
+                             gbp_cc_transforms=["abs", "max"])

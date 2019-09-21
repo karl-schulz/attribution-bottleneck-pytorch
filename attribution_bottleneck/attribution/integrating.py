@@ -5,17 +5,18 @@ import torch.nn.functional as F
 import torch.autograd
 from scipy.ndimage import gaussian_filter
 
-from ..attribution.base import AttributionMethod
+# from ..attribution.base import AttributionMethod
+from attribution_bottleneck.attribution.backprop import ModifiedBackpropMethod
 from tqdm import tqdm
 
 import matplotlib.pyplot as plt
 from PIL import Image
 
-from ..utils.baseline import Minimum, Mean, Baseline
+from ..utils.baselines import Minimum, Mean, Baseline
 from ..utils.misc import *
 
 
-class SumMethod(BackpropMethod):
+class SumMethod(ModifiedBackpropMethod):
     """
     Something than can make a attribution heatmap from several inputs and a attribution method
     The resulting heatmap is the sum of all the other methods
@@ -24,7 +25,7 @@ class SumMethod(BackpropMethod):
     backpropagation over the samples.
     """
 
-    def __init__(self, backprop: BackpropMethod, cc_transforms):
+    def __init__(self, backprop: ModifiedBackpropMethod, cc_transforms):
         super().__init__(cc_transforms=cc_transforms)
         self.verbose = False
         self.progbar = False
@@ -66,9 +67,9 @@ class SumMethod(BackpropMethod):
         """ yield the samples to analyse """
         raise NotImplementedError
 
-class SmoothGrad(SumMethod):
 
-    def __init__(self, backprop: BackpropMethod, std, steps=50, cc_transforms=None):
+class SmoothGrad(SumMethod):
+    def __init__(self, backprop: ModifiedBackpropMethod, std, steps=50, cc_transforms=None):
         cc_transforms = cc_transforms if cc_transforms is not None else ["abs", "max"]
         super().__init__(backprop=backprop, cc_transforms=cc_transforms)
         self.std = std
@@ -84,9 +85,10 @@ class SmoothGrad(SumMethod):
 
         return noise_images
 
+
 class IntegratedGradients(SumMethod):
 
-    def __init__(self, backprop: BackpropMethod, baseline: Baseline = None, steps=50, cc_transforms=None):
+    def __init__(self, backprop: ModifiedBackpropMethod, baseline: Baseline = None, steps=50, cc_transforms=None):
         """
         :param baseline: start point for interpolation (0-1 grey, or "inv", or "avg")
         :param steps: resolution

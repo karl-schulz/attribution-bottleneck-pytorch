@@ -128,6 +128,17 @@ def denormalize(img: np.ndarray):
     img = img / np.max(img)  # force max 1
     return img
 
+    mean3 = [0.485, 0.456, 0.406]
+    std3 = [0.229, 0.224, 0.225]
+    mean1 = [0.5]
+    std1 = [0.5]
+    mean, std = (mean3, std3) if img.shape[2] == 3 else (mean1, std1)
+    for d in range(len(mean)):
+        img[:, :, d] += mean[d]
+        if np.max(img) > 1:
+            img = img / np.max(img)  # force max 1
+    return img
+
 def to_np_img(img: torch.Tensor, denorm=False):
 
     # force 2-3 dims
@@ -155,3 +166,77 @@ def to_np(t: torch.Tensor):
     if t.is_cuda:
         t = t.cpu()
     return t.numpy()
+
+def make_batch_list(inp):
+    if isinstance(inp, torch.Tensor):
+        inp = inp, None  # pseudo-tuple
+    if not isinstance(inp, list):
+        inp = [inp]
+    assert isinstance(inp, list), type(inp)
+    assert isinstance(inp[0], tuple), type(inp[0])
+    assert isinstance(inp[0][0], torch.Tensor), type(inp[0][0])
+    return inp
+
+def analyze_img(img: np.array):
+    return "img {}: \n   min={:04f}, \n   max={:04f}, \n   mean={:04f}, \n   std={:04f}".format(img.shape, img.min(), img.max(), img.mean(), img.std())
+
+
+def reset_layers(layers):
+
+    def init(m):
+        if isinstance(m, nn.Conv2d):
+            print("reinit " + m.__class__.__name__)
+            nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+        elif isinstance(m, nn.BatchNorm2d):
+            print("reinit " + m.__class__.__name__)
+            nn.init.constant_(m.weight, 1)
+            nn.init.constant_(m.bias, 0)
+        elif len(m.parameters()) > 0:
+            print("Warning: no init for "+m.__class__.__name__)
+
+    for l in layers:
+        l.apply(init)
+
+def grad_only(model, layer_s):
+    """ set requires_grad to true only for the given layers """
+    layers = layer_s if isinstance(layer_s, (list, tuple)) else [layer_s]
+
+    def grad_on(m):
+        for p in m.parameters():
+            p.requires_grad = True
+
+    def grad_off(m):
+        for p in m.parameters():
+            p.requires_grad = False
+
+    # all off
+    model.apply(grad_off)
+    for l in layers:
+        l.apply(grad_on)
+
+def toggle_eval(self, classe_s, val):
+    """ toggle eval mode to val for every layer of certain types """
+    classes = classe_s if isinstance(classe_s, tuple) else classe_s,
+
+    def toggle(m):
+        if isinstance(m, classes):
+            print("putting "+m.__class__.__name__+" to "+("eval" if val else "train"))
+            if val:
+                m.eval()
+            else:
+                m.train()
+
+    self.setup.model.apply(toggle)
+
+
+def call_batched(model, tensor, batch_size):
+    n = len(tensor)
+    k = n
+    outs = []
+    for i in range(n // batch_size + 1):
+        b = i*batch_size
+        e = min((i+1)*batch_size, len(tensor))
+        if b == e:
+            break
+        outs.append(model(tensor[b:e]))
+    return torch.cat(outs, 0)

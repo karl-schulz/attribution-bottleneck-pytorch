@@ -45,7 +45,7 @@ class DataProvider:
         return str(num) if self.label_dict is None else self.label_dict[num]
 
 class DataSubsetIterator:
-    def __init__(self, loader):
+    def __init__(self, loader, ):
         pass
 
     def __next__(self):
@@ -58,9 +58,6 @@ class TorchZooImageNetFolderDataProvider(DataProvider):
         2=monkey (382)
     """
     def __init__(self, config, transform=None):
-
-        config = self.apply_defaults(config)
-
         # prepare arguments for ImageFolderDataset
         if transform is None:
             transform = Compose([
@@ -102,13 +99,6 @@ class TorchZooImageNetFolderDataProvider(DataProvider):
         sample = (self.transform(sample).unsqueeze(0).to(self.device), torch.tensor(label).to(self.device))
         return sample
 
-    @staticmethod
-    def apply_defaults(overrides=None):
-        return {**{
-            'imagenet_dict_file': '../../data/imagenet_full/dict.txt',
-            'imagenet_train': '/mnt/ssd/data/imagenet/imagenet-raw/train',
-            'imagenet_test': '/mnt/ssd/data/imagenet/imagenet-raw/validation',
-        }, **(overrides if overrides is not None else {})}
 
 # dataset factories
 

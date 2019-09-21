@@ -4,7 +4,7 @@ from tqdm import tqdm
 from scipy.stats import norm
 import numpy as np
 import torch.nn as nn
-from ..utils.misc import to_np
+from attribution_bottleneck.utils.misc import to_np
 
 
 class Estimator:
