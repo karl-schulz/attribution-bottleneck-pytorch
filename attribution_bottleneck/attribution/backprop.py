@@ -1,9 +1,7 @@
+""" Base classes and implementations for backpropagation-based methods """
 
 import torch
-import torch.nn as nn
 import numpy as np
-from numpy.core import overrides
-
 from attribution_bottleneck.utils.misc import to_np_img
 from ..utils.transforms import Compose, CropPercentile, SetInterval
 from ..utils.misc import to_np
@@ -56,7 +54,7 @@ class ModifiedBackpropMethod(AttributionMethod):
     def heatmap(self, input_t, target_t):
         """ call the implementation and then do formatting and postprocessing """
 
-        # Calculate raw gradient on the input space
+        # Calculate raw gradient on the input features
         self.model.eval()
         self.__prepare_model()
         grad_t = self.__calc_gradient(input_t=input_t, target_t=target_t).detach()
@@ -64,16 +62,16 @@ class ModifiedBackpropMethod(AttributionMethod):
 
         assert isinstance(grad_t, torch.Tensor)
         assert len(grad_t.shape) == 4
-        assert grad_t.shape == tuple(input_t.shape), "backprop return same shape! {} != ".format(grad_t.shape, input_t.shape)
+        assert grad_t.shape == tuple(input_t.shape), f"Backprop shape mismatch: {grad_t.shape} != {input_t.shape}"
 
-        # Apply transforms to postprocess the gradient and yield a 2D map
+        # Apply transforms to post-process the gradient and yield a 2D map
         grad = to_np_img(grad_t)
         heatmap = self._transform_gradient(grad)
 
         return heatmap
 
     def __calc_gradient(self, input_t: torch.Tensor, target_t: torch.Tensor):
-        """ Calculate the gradient of the INPUT respective to one output feature """
+        """ Calculate the gradient of the logits w.r.t. the input """
 
         # Pass input through the model
         self.model.zero_grad()  # Reset grad for recalculation
@@ -117,6 +115,7 @@ class GradientTimesInput(ModifiedBackpropMethod):
 
     """ Gradient * Input """
     def heatmap(self, input_t, target_t):
+        # Remember input for future usage
         self.last_input = to_np(input_t)
         return super().heatmap(input_t, target_t)
 

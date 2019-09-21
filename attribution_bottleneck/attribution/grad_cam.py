@@ -6,7 +6,7 @@ from ..attribution.base import AttributionMethod
 
 class GradCAM(AttributionMethod):
 
-    def __init__(self, model: torch.nn.Module, layer: torch.nn.Module, interp="nearest"):
+    def __init__(self, model: torch.nn.Module, layer: torch.nn.Module, interp="bilinear"):
         """
         :param model: model containing the softmax-layer
         :param device: dev
