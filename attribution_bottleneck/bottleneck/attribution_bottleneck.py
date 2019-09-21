@@ -63,7 +63,7 @@ class AttributionBottleneck(nn.Module):
         # Denormalize z to match magnitude of x
         z = z_norm * self.std + self.mean
 
-        # Maybe clamp output, if input was post-relu
+        # Clamp output, if input was post-relu
         if self.relu:
             z = torch.clamp(z, 0.0)
 

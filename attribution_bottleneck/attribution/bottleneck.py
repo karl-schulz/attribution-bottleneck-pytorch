@@ -12,14 +12,13 @@ from ..utils.misc import resize, replace_layer, to_np
 
 class AttributionBottleneckReader(AttributionMethod):
 
-    def __init__(self, model, estim: Estimator, beta=10, steps=10, lr=1, batch_size=10, sigma=0.5, mode="capacity"):
+    def __init__(self, model, estim: Estimator, beta=10, steps=20, lr=0.3, batch_size=10, sigma=0.5, progbar=False):
         self.model = model
         self.original_layer = estim.get_layer()
         self.shape = estim.shape()
         self.beta = beta
         self.batch_size = batch_size
-        self.mode = mode
-        self.progbar = False
+        self.progbar = progbar
         self.show_steps = False
         self.device = list(model.parameters())[0].device
         self.lr = lr
@@ -29,8 +28,6 @@ class AttributionBottleneckReader(AttributionMethod):
 
     def heatmap(self, input_t, target):
         target_t = torch.tensor([target]) if not isinstance(target, torch.Tensor) else target
-        print(target_t)
-        print(target_t.shape)
         self._run_training(input_t, target_t)
         return self._current_heatmap(shape=input_t.shape[2:])
 
@@ -69,7 +66,7 @@ class AttributionBottleneckReader(AttributionMethod):
         for _ in tqdm(range(self.train_steps), desc="Training Bottleneck", disable=not self.progbar):
             optimizer.zero_grad()
             out = self.model(batch[0])
-            loss_t = self.bottleneck.calc_loss(outputs=out, labels=batch[1])
+            loss_t = self.calc_loss(outputs=out, labels=batch[1])
             loss_t.backward()
             optimizer.step(closure=None)
 
