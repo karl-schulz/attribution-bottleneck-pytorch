@@ -27,11 +27,11 @@ class Factory:
         return Zero()
 
     def Gradient(self):
-        return Gradient(self.model, cc_transforms=["sum"])
+        return Gradient(self.model)
 
     def GradientTimesInput(self):
         """ https://arxiv.org/abs/1605.01713 """
-        return GradientTimesInput(self.model, cc_transforms=["sum"])
+        return GradientTimesInput(self.model)
 
     def PatternAttribution(self):
         assert hasattr(self.model, "features") and hasattr(self.model, "classifier"), \
@@ -43,21 +43,20 @@ class Factory:
 
     def Saliency(self):
         """ https://arxiv.org/abs/1312.6034 """
-        return Gradient(self.model, cc_transforms=["abs", "max"])
+        return Gradient(self.model)
 
     def GuidedBackprop(self):
         """ https://arxiv.org/abs/1412.6806 """
-        return GuidedBackprop(self.model, cc_transforms=["abs", "max"])
+        return GuidedBackprop(self.model)
 
     def DeconvNet(self):
         """ TODO CITATION """
-        return DeconvNet(self.model, cc_transforms=["abs", "max"])
+        return DeconvNet(self.model)
 
     def IntegratedGradients(self):
         """ https://arxiv.org/abs/1703.01365 """
         # todo ist nicht gut, etwas fehlt wohl
-        return IntegratedGradients(Gradient(self.model), baseline=Mean(), steps=50,
-                                   cc_transforms=["abs", "max"])
+        return IntegratedGradients(Gradient(self.model), baseline=Mean(), steps=50)
 
     def Occlusion(self, patch_size):
         """ TODO CITATION """
@@ -66,7 +65,7 @@ class Factory:
     def SmoothGrad(self):
         """ https://arxiv.org/abs/1706.03825 """
         # welche transforms?
-        return SmoothGrad(Gradient(self.model), std=0.15, steps=50, cc_transforms=["abs", "max"])
+        return SmoothGrad(Gradient(self.model), std=0.15, steps=50)
 
     def GradCAM(self, layer):
         """ https://arxiv.org/abs/1610.02391 """
@@ -74,5 +73,4 @@ class Factory:
 
     def GuidedGradCAM(self, gradcam_layer):
         """ https://arxiv.org/abs/1412.6806 """
-        return GuidedGradCAM(self.model, gradcam_layer=gradcam_layer, gradcam_interp='bilinear',
-                             gbp_cc_transforms=["abs", "max"])
+        return GuidedGradCAM(self.model, gradcam_layer=gradcam_layer, gradcam_interp='bilinear')

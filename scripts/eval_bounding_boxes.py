@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#! /usr/bin/env python
 
 import numpy as np
 import torch
@@ -16,7 +16,7 @@ import time
 import os
 from PIL import Image
 from datetime import datetime
-
+from attribution_bottleneck.utils.transforms import HeatmapTransform
 sys.setrecursionlimit(10000)
 
 start_time = time.time()
@@ -101,7 +101,7 @@ def parse_bbox_xml(filename):
     bboxs = []
     width = int(root.find('.size/.width').text)
     height = int(root.find('.size/.height').text)
-    image_filename = root.find('.filename').text
+    ievaluatimage_filename = root.find('.filename').text
     for obj in root.findall('.object'):
         xml_bbox = obj.find('.bndbox')
         xmin = int(xml_bbox.find('.xmin').text)
@@ -146,8 +146,8 @@ def stream_imagenet_val_set_with_masks(image_dir, bbox_dir, if_obj_smaller=1, n_
         mask_img = Image.fromarray(np.uint8(mask * 255))
         image_torch = imagenet_transform(image)
         mask_torch = imagenet_transform(mask_img)
-        if ((mask_torch.sum() / torch.ones_like(mask_torch).sum()).item() <= if_obj_smaller
-                and (mask_torch >= 0.5).sum() > 0):
+        mask_ratio = (mask_torch.sum() / torch.ones_like(mask_torch).sum()).item()
+        if mask_ratio <= if_obj_smaller and (mask_torch >= 0.5).sum() > 0:
             target = torch.LongTensor([synnet_to_target[synnet]])
             yield image_torch, mask_torch, target
 

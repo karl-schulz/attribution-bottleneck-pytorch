@@ -32,7 +32,7 @@ def get_default_config():
         'imagenet_train': 'data/imagenet/train',
         'imagenet_test': 'data/imagenet/validation',
         'imagenet_dict_file': 'data/imagenet_label_dict.yaml',
-        'imagenet_test_bbox': "/home/leonsixt/tmp/imagenet/imagenet-raw/val_bounding_boxes",
+        'imagenet_test_bbox': "data/imagenet/val_bounding_boxes",
         'readout_weighs_vgg16': "model_weights/09-14_11-32-21_VGG_e015_b00000_s19217.torch",
         'readout_weighs_resnet50': "model_weights/09-14_11-32-47_ResNet_e009_b40000_s12410.torch",
         'pattern_weights': 'model_weights/model_vgg16_pattern_small.pth',

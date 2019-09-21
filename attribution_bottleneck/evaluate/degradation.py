@@ -156,7 +156,7 @@ class Collector:
             for name, meth in self.method_settings.items():
                 sample = sample[0].to(self.device), sample[1].to(self.device)
                 start = time.time()
-                hmap = meth.heatmap(input_t=sample[0], target_t=sample[1])
+                hmap = meth.heatmap(sample[0], sample[1])
                 total_ms[name] += time.time() - start
                 if self.show_heatmap:
                     show_img(hmap)

@@ -80,15 +80,14 @@ class GradCAM(AttributionMethod):
 
 class GuidedGradCAM(AttributionMethod):
     def __init__(self, model: torch.nn.Module, gradcam_layer: torch.nn.Module,
-                 gradcam_interp="nearest",
-                 gbp_cc_transoforms=['abs', 'max']):
+                 gradcam_interp="nearest"):
         """
         :param model: model containing the softmax-layer
         :param device: dev
         :param layer: evaluation layer - object or name or id
         """
         self.grad_cam = GradCAM(model, gradcam_layer, gradcam_interp)
-        self.guided_backprop = GuidedBackprop(model, cc_transoforms=['abs', 'max'])
+        self.guided_backprop = GuidedBackprop(model)
 
     def heatmap(self, input_t: torch.Tensor, target_t: torch.Tensor):
         gradcam_heatmap = self.grad_cam.heatmap(input_t, target_t)
