@@ -9,11 +9,16 @@ of this repository is to reproduce our results.
 ```bash
 $ conda create -n new environment --file requirements.txt
 ```
-2. Download the model weights from the [release page](releases)
+2. Using your new conda environment, install this repository with pip: `pip install .`
+3. Download the model weights from the [release page](releases) and unpack them
+   in the repository root directory: `tar -xvf bottleneck_for_attribution_weights.tar.gz`.
+4. Place the imagenet dataset under `data/imagenet`. You might just create
+   a link with `ln -s [image dir]  data/imagenet`.
+5. Test it with: `python ./scripts/eval_degradation.py resnet50 8 Saliency test`
 
 ## Usage
 
-We provide
+We provide some jupyter notebooks.....
 
 
 ## Scripts
