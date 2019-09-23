@@ -7,6 +7,8 @@ from tqdm import tqdm
 from attribution_bottleneck.evaluate.script_utils import get_model_and_attribution_method, \
     get_default_config
 from attribution_bottleneck.evaluate.degradation import GridPerturber
+from attribution_bottleneck.attribution.occlusion import Occlusion
+from attribution_bottleneck.utils.baselines import ZeroBaseline
 import sys
 import os
 import time
@@ -65,6 +67,12 @@ start_time = time.time()
 # Setup net
 
 model, attribution, test_set = get_model_and_attribution_method(config)
+
+if config['attribution_name'] == 'Occlusion-14x14':
+    attribution = Occlusion(model, size=14, baseline=ZeroBaseline())
+elif config['attribution_name'] == 'Occlusion-8x8':
+    attribution = Occlusion(model, size=8, baseline=ZeroBaseline())
+
 np.random.seed(config['seed'])
 sample_idxs = np.random.choice(len(test_set), config['n_samples'], replace=False)
 

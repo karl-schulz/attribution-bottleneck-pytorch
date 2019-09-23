@@ -5,13 +5,9 @@ from attribution_bottleneck.attribution.bottleneck import PerSampleBottleneckRea
 from attribution_bottleneck.attribution.readout import ReadoutBottleneckReader
 from attribution_bottleneck.bottleneck.readout_bottleneck import \
     OldDenseAdaptiveReadoutBottleneck, DenseAdaptiveReadoutBottleneck
-# from train.setup import Setup
 from attribution_bottleneck.utils.data import TorchZooImageNetFolderDataProvider
-# from utils.misc import *
 from attribution_bottleneck.bottleneck.estimator import ReluEstimator, GaussianEstimator, \
     EstimatorGroup
-# from information.readout_bottleneck import *
-# from evaluate.tensorview import *
 import sys
 import torch
 
@@ -33,9 +29,9 @@ def get_default_config():
         'imagenet_test': 'data/imagenet/validation',
         'imagenet_dict_file': 'data/imagenet_label_dict.yaml',
         'imagenet_test_bbox': "data/imagenet/val_bounding_boxes",
-        'readout_weighs_vgg16': "model_weights/09-14_11-32-21_VGG_e015_b00000_s19217.torch",
-        'readout_weighs_resnet50': "model_weights/09-14_11-32-47_ResNet_e009_b40000_s12410.torch",
-        'pattern_weights': 'model_weights/model_vgg16_pattern_small.pth',
+        'readout_weighs_vgg16': "weights/readout_vgg16.torch",
+        'readout_weighs_resnet50': "weights/readout_resnet50.torch",
+        'pattern_weights': 'weights/model_vgg16_pattern_small.pth',
     }
 
 
