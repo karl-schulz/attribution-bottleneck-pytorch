@@ -6,9 +6,9 @@ of this repository is to reproduce our results.
 ## Setup
 
 1. Clone this repository:
-  ```
-  $ git clone [] && cd attribution-bottleneck-pytorch
-  ```
+    ```
+    $ git clone [] && cd attribution-bottleneck-pytorch
+    ```
 2. Create a conda environment with all packages: 
    ```
    $ conda create -n new environment --file requirements.txt
