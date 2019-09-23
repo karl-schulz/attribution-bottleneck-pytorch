@@ -5,16 +5,33 @@ of this repository is to reproduce our results.
 
 ## Setup
 
-1.Create a conda environment with all packages:
-```bash
-$ conda create -n new environment --file requirements.txt
-```
-2. Using your new conda environment, install this repository with pip: `pip install .`
-3. Download the model weights from the [release page](releases) and unpack them
-   in the repository root directory: `tar -xvf bottleneck_for_attribution_weights.tar.gz`.
-4. Place the imagenet dataset under `data/imagenet`. You might just create
+1. Clone this repository:
+  ```
+  $ git clone [] && cd attribution-bottleneck-pytorch
+  ```
+2. Create a conda environment with all packages: 
+   ```
+   $ conda create -n new environment --file requirements.txt
+   ```
+
+3. Using your new conda environment, install this repository with pip: 
+   ```
+   $ pip install .
+    ```
+
+4. Download the model weights from the [release page](releases) and unpack them
+   in the repository root directory: 
+   ```
+   $ tar -xvf bottleneck_for_attribution_weights.tar.gz
+   ```
+   
+5. Place the imagenet dataset under `data/imagenet`. You might just create
    a link with `ln -s [image dir]  data/imagenet`.
-5. Test it with: `python ./scripts/eval_degradation.py resnet50 8 Saliency test`
+   
+6. Test it with: 
+   ```
+   $ python ./scripts/eval_degradation.py resnet50 8 Saliency test
+   ```
 
 ## Usage
 
