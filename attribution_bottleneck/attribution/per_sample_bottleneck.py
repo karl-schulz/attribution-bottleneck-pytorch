@@ -12,7 +12,7 @@ from attribution_bottleneck.utils.misc import resize, replace_layer, to_np
 
 class PerSampleBottleneckReader(AttributionMethod):
     def __init__(self, model, estim: Estimator, beta=10, steps=10, lr=1, batch_size=10,
-                 sigma=0.5, mode="capacity", progbar=False):
+                 sigma=1, progbar=False):
         self.model = model
         self.original_layer = estim.get_layer()
         self.shape = estim.shape()

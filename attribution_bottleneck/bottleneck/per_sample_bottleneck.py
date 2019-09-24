@@ -26,7 +26,7 @@ class PerSampleBottleneck(AttributionBottleneck):
     The Attribution Bottleneck.
     Is inserted in a existing model to suppress information, parametrized by a suppression mask alpha.
     """
-    def __init__(self, mean: np.ndarray, std: np.ndarray, sigma=None, device=None, relu=False):
+    def __init__(self, mean: np.ndarray, std: np.ndarray, sigma, device=None, relu=False):
         """
         :param mean: The empirical mean of the activations of the layer
         :param std: The empirical standard deviation of the activations of the layer

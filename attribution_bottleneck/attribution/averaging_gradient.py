@@ -1,64 +1,59 @@
 from __future__ import print_function
 
-import numpy as np
-import torch.nn.functional as F
 import torch.autograd
-from scipy.ndimage import gaussian_filter
+from attribution_bottleneck.attribution.base import AttributionMethod
 
 # from ..attribution.base import AttributionMethod
 from attribution_bottleneck.attribution.backprop import ModifiedBackpropMethod
 from tqdm import tqdm
 
-import matplotlib.pyplot as plt
-from PIL import Image
 
-from ..utils.baselines import Minimum, Mean, Baseline
+from ..utils.baselines import Mean, Baseline
 from ..utils.misc import *
 
 
-class SumMethod(ModifiedBackpropMethod):
+class AveragingGradient(AttributionMethod):
     """
-    Something than can make a attribution heatmap from several inputs and a attribution method
-    The resulting heatmap is the sum of all the other methods
-
-    It is also just a backprop method: the projection on the input space is the sum of the
-    backpropagation over the samples.
+    Something than can make a attribution heatmap from several inputs and a backpropagating attribution method.
+    The resulting heatmap is the sum of all the other methods.
     """
-
-    def __init__(self, backprop: ModifiedBackpropMethod, cc_transforms):
-        super().__init__(cc_transforms=cc_transforms)
+    def __init__(self, backprop: ModifiedBackpropMethod):
+        super().__init__()
         self.verbose = False
         self.progbar = False
         self.backprop = backprop
 
-    def backpropagate(self, input_t: torch.Tensor, target_t: torch.Tensor):
+    def heatmap(self, input_t, target):
         # generate sample list (different per method)
         images = self._get_samples(input_t)
-
+        target_t = target if isinstance(target, torch.Tensor) else torch.tensor(target, device=input_t.device)
         assert isinstance(target_t, torch.Tensor)
         assert len(images[0].shape) == 4, "{} makes dim {} !".format(images[0].shape, len(images[0].shape))  # C x N x N
 
         grads = self._backpropagate_multiple(images, target_t)
 
-        grad_mean = np.mean(grads, axis=0)
-
-        return grad_mean
+        # Reduce sample dimension
+        grads_mean = np.mean(grads, axis=0)
+        # Reduce batch dimension
+        grads_rgb = np.mean(grads_mean, axis=0)
+        # Reduce color dimension
+        heatmap = np.mean(grads_rgb, axis=0)
+        return heatmap
 
     def _backpropagate_multiple(self, inputs: list, target_t: torch.Tensor):
         """
         returns an array with all the computed gradients
         shape: N_Inputs x Batches=1 x Color Channels x Height x Width
         """
+        # Preallocate empty gradient stack
         grads = np.zeros((len(inputs), *inputs[0].shape))
-        it = tqdm(range(len(inputs)), ncols=100, desc="calc grad") if len(inputs) > 1 and self.progbar else range(len(inputs))
-
-        for i in it:
-            grad = self.backprop.backpropagate(input_t=inputs[i], target_t=target_t)
-
-            # add color dimension
+        # Generate gradients
+        iterator = tqdm(range(len(inputs)), ncols=100, desc="calc grad") if len(inputs) > 1 and self.progbar else range(len(inputs))
+        for i in iterator:
+            grad = self.backprop._calc_gradient(input_t=inputs[i], target_t=target_t)
+            # If required, add color dimension
             if len(grad.shape) == 3:
                 np.expand_dims(grad, axis=0)
-
             grads[i, :, :, :, :] = grad
 
         return grads
@@ -68,10 +63,9 @@ class SumMethod(ModifiedBackpropMethod):
         raise NotImplementedError
 
 
-class SmoothGrad(SumMethod):
-    def __init__(self, backprop: ModifiedBackpropMethod, std, steps=50, cc_transforms=None):
-        cc_transforms = cc_transforms if cc_transforms is not None else ["abs", "max"]
-        super().__init__(backprop=backprop, cc_transforms=cc_transforms)
+class SmoothGrad(AveragingGradient):
+    def __init__(self, backprop: ModifiedBackpropMethod, std=0.15, steps=50):
+        super().__init__(backprop=backprop)
         self.std = std
         self.steps = steps
 
@@ -79,23 +73,17 @@ class SmoothGrad(SumMethod):
         relative_std = (img_t.max().item() - img_t.min().item()) * self.std
         noises = [torch.randn(*img_t.shape).to(img_t.device) * relative_std for _ in range(0, self.steps)]
         noise_images = [img_t + noises[i] for i in range(0, self.steps)]
-
-        # maybe clamp ?
-        # noise_images = [torch.clamp(img, 0, 1) for img in noise_images]
-
         return noise_images
 
 
-class IntegratedGradients(SumMethod):
+class IntegratedGradients(AveragingGradient):
 
-    def __init__(self, backprop: ModifiedBackpropMethod, baseline: Baseline = None, steps=50, cc_transforms=None):
+    def __init__(self, backprop: ModifiedBackpropMethod, baseline: Baseline = None, steps=50):
         """
         :param baseline: start point for interpolation (0-1 grey, or "inv", or "avg")
         :param steps: resolution
-        :param cc_transforms: how to evaluate the color channel gradients
         """
-        cc_transforms = cc_transforms if cc_transforms is not None else ["abs", "max"]
-        super().__init__(backprop=backprop, cc_transforms=cc_transforms)
+        super().__init__(backprop=backprop)
         self.baseline = baseline if baseline is not None else Mean()
         self.steps = steps
 

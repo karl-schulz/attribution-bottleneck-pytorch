@@ -15,11 +15,12 @@ class LRP(AttributionMethod):
         self.method = method
         self.device = device
 
-    def heatmap(self, input_t, target_t):
+    def heatmap(self, input_t, target):
+        target_t = target if isinstance(target, torch.Tensor) else torch.tensor(target, device=input_t.device)
+
         assert input_t.shape[0] == 1, "We can only fit on one sample"
         assert target_t.shape[0] == 1, "We can only fit on one label"
-
-        assert input_t.shape[-1] == 224, "otherwise avgpool is not the identity"
+        assert input_t.shape[-1] == 224, "with must be 224, otherwise avgpool is not the identity"
         avgpool = self.model.avgpool
         self.model.avgpool = Identity()
 

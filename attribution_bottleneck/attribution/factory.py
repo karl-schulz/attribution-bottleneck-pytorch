@@ -1,6 +1,6 @@
 from attribution_bottleneck.attribution.backprop import Gradient, GradientTimesInput
 from attribution_bottleneck.attribution.guided_backprop import GuidedBackprop, DeconvNet
-from attribution_bottleneck.attribution.integrating import IntegratedGradients, SmoothGrad
+from attribution_bottleneck.attribution.averaging_gradient import IntegratedGradients, SmoothGrad
 from attribution_bottleneck.attribution.grad_cam import GradCAM, GuidedGradCAM
 from attribution_bottleneck.attribution.occlusion import Occlusion
 from attribution_bottleneck.attribution.pattern import PatternAttribution

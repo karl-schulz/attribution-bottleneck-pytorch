@@ -2,7 +2,7 @@
 
 import torch
 import numpy as np
-from attribution_bottleneck.utils.misc import to_np_img
+from ..utils.misc import to_np_img
 from ..utils.transforms import Compose, CropPercentile, SetInterval
 from ..utils.misc import to_np
 from ..attribution.base import AttributionMethod
@@ -57,7 +57,7 @@ class ModifiedBackpropMethod(AttributionMethod):
         # Calculate raw gradient on the input features
         self.model.eval()
         self.__prepare_model()
-        grad_t = self.__calc_gradient(input_t=input_t, target_t=target_t).detach()
+        grad_t = self._calc_gradient(input_t=input_t, target_t=target_t).detach()
         self.__restore_model()
 
         assert isinstance(grad_t, torch.Tensor)
@@ -70,7 +70,7 @@ class ModifiedBackpropMethod(AttributionMethod):
 
         return heatmap
 
-    def __calc_gradient(self, input_t: torch.Tensor, target_t: torch.Tensor):
+    def _calc_gradient(self, input_t: torch.Tensor, target_t: torch.Tensor):
         """ Calculate the gradient of the logits w.r.t. the input """
 
         # Pass input through the model

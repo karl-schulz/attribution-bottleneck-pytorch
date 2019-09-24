@@ -25,7 +25,7 @@ class PatternAttribution(AttributionMethod):
             vgg_model, data_mean=data_mean, data_std=data_std).to(self.device)
 
         # load patterns for pattern attribution
-        default_pattern = 'pretrained/pattern_vgg16/model_vgg16_pattern_small.pth'
+        default_pattern = '/home/karlschulz/projects/pretrained/pattern_vgg16/model_vgg16_pattern_small.pth'
         self.data_location = (pattern_weights or default_pattern)
         self.explainable_model.load_state_dict(
             torch.load(self.data_location, map_location=self.device), strict=False)

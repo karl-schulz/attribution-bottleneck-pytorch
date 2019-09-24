@@ -4,7 +4,7 @@ from attribution_bottleneck.attribution.factory import Factory
 from attribution_bottleneck.attribution.per_sample_bottleneck import PerSampleBottleneckReader
 from attribution_bottleneck.attribution.readout_bottleneck import ReadoutBottleneckReader
 from attribution_bottleneck.bottleneck.readout_bottleneck import \
-    OldDenseAdaptiveReadoutBottleneck, DenseAdaptiveReadoutBottleneck
+    ReadoutBottleneckB, ReadoutBottleneckA
 from attribution_bottleneck.utils.data import TorchZooImageNetFolderDataProvider
 from attribution_bottleneck.bottleneck.estimator import ReluEstimator, GaussianEstimator, \
     EstimatorGroup
@@ -62,7 +62,7 @@ def get_model_and_attribution_method(config):
             model, [e(l) for e, l in zip(readout_types, readout_layers)])
         gcam_layer = model.features[-1]
     else:
-        raise
+        raise RuntimeError
 
     # Prepare setup
     # Setup(config, model, data_prov)
@@ -76,13 +76,13 @@ def get_model_and_attribution_method(config):
     # Prepare Readout
     if model_name == "resnet50":
         readout_group.load("pretrained/estim_resnet50/100k_all_layers_fc.torch")
-        readout_dense_10 = OldDenseAdaptiveReadoutBottleneck.load_path(
+        readout_dense_10 = ReadoutBottleneckB.load_path(
             model, readout_layers, config['readout_weighs_resnet50'])
     elif model_name == "vgg16":
         readout_feats_str = ",".join(str(f) for f in readout_feats)
         readout_path = f"pretrained/estim_vgg16/100k_" + readout_feats_str + ",fc.torch"
         readout_group.load(readout_path)
-        readout_dense_10 = DenseAdaptiveReadoutBottleneck.load_path(
+        readout_dense_10 = ReadoutBottleneckA.load_path(
             model, readout_layers, config['readout_weighs_vgg16'])
 
     lit = Factory(model)
