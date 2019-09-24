@@ -76,6 +76,11 @@ class Mean(Baseline):
         return baseline_img
 
 
+class ZeroBaseline(Baseline):
+    def apply(self, img):
+        return np.zeros_like(img)
+
+
 class TileMean(Baseline):
     """ Tile-wise color mean """
     def __init__(self, tile_size):

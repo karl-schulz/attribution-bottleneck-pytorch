@@ -11,7 +11,7 @@ setuptools.setup(
     description="Implementation of the Attribution Bottleneck",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    packages=['attribution_bottleneck'],
+    packages=setuptools.find_namespace_packages(include=['attribution_bottleneck.*']),
     install_requires=[
         'numpy',
         'imageio',
