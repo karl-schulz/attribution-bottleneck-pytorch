@@ -1,8 +1,8 @@
 import torchvision
 
 from attribution_bottleneck.attribution.factory import Factory
-from attribution_bottleneck.attribution.bottleneck import PerSampleBottleneckReader
-from attribution_bottleneck.attribution.readout import ReadoutBottleneckReader
+from attribution_bottleneck.attribution.per_sample_bottleneck import PerSampleBottleneckReader
+from attribution_bottleneck.attribution.readout_bottleneck import ReadoutBottleneckReader
 from attribution_bottleneck.bottleneck.readout_bottleneck import \
     OldDenseAdaptiveReadoutBottleneck, DenseAdaptiveReadoutBottleneck
 # from train.setup import Setup
