@@ -4,7 +4,24 @@ import numpy as np
 from ..bottleneck.gaussian_kernel import SpatialGaussianKernel
 
 
-class PerSampleBottleneck(nn.Module):
+class AttributionBottleneck(nn.Module):
+
+    @staticmethod
+    def _sample_z(mu, log_noise_var):
+        """ return mu with additive noise """
+        log_noise_var = torch.clamp(log_noise_var, -10, 10)
+        noise_std = (log_noise_var / 2).exp()
+        eps = mu.data.new(mu.size()).normal_()
+        return mu + noise_std * eps
+
+    @staticmethod
+    def _calc_capacity(mu, log_var) -> torch.Tensor:
+        # KL[Q(z|x)||P(z)]
+        # 0.5 * (tr(noise_cov) + mu ^ T mu - k  -  log det(noise)
+        return -0.5 * (1 + log_var - mu**2 - log_var.exp())
+
+
+class PerSampleBottleneck(AttributionBottleneck):
     """
     The Attribution Bottleneck.
     Is inserted in a existing model to suppress information, parametrized by a suppression mask alpha.
@@ -58,7 +75,7 @@ class PerSampleBottleneck(nn.Module):
 
         # Sample new output values from p(z|x)
         z_norm = self._sample_z(mu, log_var)
-        capacity = self._calc_capacity(mu, log_var)
+        self.buffer_capacity = self._calc_capacity(mu, log_var)
 
         # Denormalize z to match magnitude of x
         z = z_norm * self.std + self.mean
@@ -67,18 +84,4 @@ class PerSampleBottleneck(nn.Module):
         if self.relu:
             z = torch.clamp(z, 0.0)
 
-        self.buffer_capacity = capacity
-
         return z
-
-    def _sample_z(self, mu, log_noise_var):
-        """ return mu with additive noise """
-        log_noise_var = torch.clamp(log_noise_var, -10, 10)
-        noise_std = (log_noise_var / 2).exp()
-        eps = mu.data.new(mu.size()).normal_()
-        return mu + noise_std * eps
-
-    def _calc_capacity(self, mu, log_var) -> torch.Tensor:
-        # KL[Q(z|x)||P(z)]
-        # 0.5 * (tr(noise_cov) + mu ^ T mu - k  -  log det(noise)
-        return -0.5 * (1 + log_var - mu**2 - log_var.exp())
