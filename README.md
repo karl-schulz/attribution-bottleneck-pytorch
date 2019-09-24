@@ -1,13 +1,13 @@
 # The Attribution Bottleneck
 
-This the source code for the paper "TODO: ADD TITLE". The main point
+This is the source code for the paper "TODO: ADD TITLE". The main point
 of this repository is to reproduce our results.
 
 ## Setup
 
 1. Clone this repository:
     ```
-    $ git clone [] && cd attribution-bottleneck-pytorch
+    $ git clone [URL] && cd attribution-bottleneck-pytorch
     ```
 2. Create a conda environment with all packages: 
    ```
@@ -25,7 +25,10 @@ of this repository is to reproduce our results.
    $ tar -xvf bottleneck_for_attribution_weights.tar.gz
    ```
    
-5. Place the imagenet dataset under `data/imagenet`. You might just create
+Optional:
+
+
+5. If you want to retrain the Readout Bottleneck, place the imagenet dataset under `data/imagenet`. You might just create
    a link with `ln -s [image dir]  data/imagenet`.
    
 6. Test it with: 
@@ -35,8 +38,10 @@ of this repository is to reproduce our results.
 
 ## Usage
 
-We provide some jupyter notebooks.....
-
+We provide some jupyter notebooks to demonstrate the usage of both per-sample and readout bottleneck. 
+* `example_per-sample.ipynb` : Usage of the Per-Sample Bottleneck on an example image
+* `example_readout.ipynb` : Usage of the Readout Bottleneck on an example image
+* `compare_methods.ipynb` : Visually compare different attribution methods on an example image
 
 ## Scripts
 
