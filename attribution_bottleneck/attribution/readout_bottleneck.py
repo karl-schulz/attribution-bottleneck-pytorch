@@ -24,6 +24,8 @@ class ReadoutBottleneckReader(AttributionMethod):
         self.bn_layer.active = False
 
     def heatmap(self, input_t: torch.Tensor, target_t: torch.Tensor):
+
+        self.model.eval()
         self._inject_bottleneck()
         with torch.no_grad():
             self.model(input_t)
@@ -35,5 +37,6 @@ class ReadoutBottleneckReader(AttributionMethod):
         hmap = resize(hmap, input_t.shape[2:])
 
         hmap = hmap - hmap.min()
+        hmap = hmap/(max(hmap.max(),1e-5))
 
         return hmap
