@@ -13,6 +13,7 @@ from attribution_bottleneck.utils.misc import resize, replace_layer, to_np
 class PerSampleBottleneckReader(AttributionMethod):
     def __init__(self, model, estim: Estimator, beta=10, steps=10, lr=1, batch_size=10,
                  sigma=1, progbar=False):
+        self.hook = None
         self.model = model
         self.original_layer = estim.get_layer()
         self.shape = estim.shape()
@@ -70,6 +71,8 @@ class PerSampleBottleneckReader(AttributionMethod):
             loss_t = self.calc_loss(outputs=out, labels=batch[1])
             loss_t.backward()
             optimizer.step(closure=None)
+            if self.hook is not None:
+                self.hook(self)
 
     def calc_loss(self, outputs, labels):
         """ Calculate the combined loss expression for optimization of lambda """
