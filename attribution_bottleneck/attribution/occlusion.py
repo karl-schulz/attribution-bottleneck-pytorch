@@ -1,7 +1,7 @@
 import numpy as np
 from tqdm import tqdm
 from attribution_bottleneck.attribution.base import AttributionMethod
-from attribution_bottleneck.utils.baselines import Baseline
+from attribution_bottleneck.utils.baselines import Baseline, Mean
 from attribution_bottleneck.utils.misc import to_np_img, to_img_tensor, resize, call_batched
 import torch
 
@@ -11,16 +11,17 @@ class Occlusion(AttributionMethod):
     slide a window over the input and measure the drop in score.
     a hmap value is the sum of the drop in all boxes that overlapped
     """
-    def __init__(self, model, size, baseline: Baseline):
+    def __init__(self, model, size, baseline: Baseline = None):
         self.model = model
         self.size = size
         self.stride = size  # TODO
         self.interp = "nearest"
-        self.baseline = baseline
+        self.baseline = baseline if baseline is not None else Mean()
         self.progbar = False
 
-    def heatmap(self, input_t: torch.Tensor, target_t: torch.Tensor):
+    def heatmap(self, input_t: torch.Tensor, target):
         self.model.eval()
+        target_t = target if isinstance(target, torch.Tensor) else torch.tensor(target, device=input_t.device)
 
         # create baseline to get patches from
         baseline_t = to_img_tensor(self.baseline.apply(to_np_img(input_t)))

@@ -3,7 +3,6 @@ from attribution_bottleneck.attribution.guided_backprop import GuidedBackprop, D
 from attribution_bottleneck.attribution.averaging_gradient import IntegratedGradients, SmoothGrad
 from attribution_bottleneck.attribution.grad_cam import GradCAM, GuidedGradCAM
 from attribution_bottleneck.attribution.occlusion import Occlusion
-from attribution_bottleneck.attribution.pattern import PatternAttribution
 from attribution_bottleneck.attribution.lrp import LRP
 from attribution_bottleneck.attribution.misc import Random, Zero
 from attribution_bottleneck.utils.baselines import Mean
@@ -32,11 +31,6 @@ class Factory:
     def GradientTimesInput(self):
         """ https://arxiv.org/abs/1605.01713 """
         return GradientTimesInput(self.model)
-
-    def PatternAttribution(self):
-        assert hasattr(self.model, "features") and hasattr(self.model, "classifier"), \
-                "PatternAttribution requires VGG"
-        return PatternAttribution(self.model)
 
     def LRP(self):
         return LRP(self.model, eps=5, beta=-1, device=self.device)
