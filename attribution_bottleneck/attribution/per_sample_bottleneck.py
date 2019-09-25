@@ -73,6 +73,7 @@ class PerSampleBottleneckReader(AttributionMethod):
 
     def calc_loss(self, outputs, labels):
         """ Calculate the combined loss expression for optimization of lambda """
-        information_loss = self.bottleneck.buffer_capacity.sum()
+        information_loss = self.bottleneck.buffer_capacity.mean()  # Taking the mean is equivalent of scaling with 1/K
         cross_entropy = F.cross_entropy(outputs, target=labels)
-        return cross_entropy + self.beta * information_loss
+        total = cross_entropy + self.beta * information_loss
+        return total

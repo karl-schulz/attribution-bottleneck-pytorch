@@ -3,7 +3,7 @@ import numpy as np
 from IPython.display import display
 from ipywidgets import interact, widgets, IntSlider
 
-from utils.misc import to_np_img, show_img, to_np
+from ..utils.misc import to_np_img, show_img, to_np
 import matplotlib.pyplot as plt
 
 
