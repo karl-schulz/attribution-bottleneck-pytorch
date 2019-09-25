@@ -101,7 +101,7 @@ def parse_bbox_xml(filename):
     bboxs = []
     width = int(root.find('.size/.width').text)
     height = int(root.find('.size/.height').text)
-    ievaluatimage_filename = root.find('.filename').text
+    image_filename = root.find('.filename').text
     for obj in root.findall('.object'):
         xml_bbox = obj.find('.bndbox')
         xmin = int(xml_bbox.find('.xmin').text)

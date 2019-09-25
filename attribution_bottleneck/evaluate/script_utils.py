@@ -29,9 +29,8 @@ def get_default_config():
         'imagenet_test': 'data/imagenet/validation',
         'imagenet_dict_file': 'data/imagenet_label_dict.yaml',
         'imagenet_test_bbox': "data/imagenet/val_bounding_boxes",
-        'readout_weighs_vgg16': "weights/readout_vgg16.torch",
-        'readout_weighs_resnet50': "weights/readout_resnet50.torch",
-        'pattern_weights': 'weights/model_vgg16_pattern_small.pth',
+        'readout_weighs_vgg16': "weights/readout_vgg16_epoch35.torch",
+        'readout_weighs_resnet50': "weights/readout_resnet50_epoch35.torch",
     }
 
 
@@ -75,12 +74,12 @@ def get_model_and_attribution_method(config):
 
     # Prepare Readout
     if model_name == "resnet50":
-        readout_group.load("pretrained/estim_resnet50/100k_all_layers_fc.torch")
+        readout_group.load("weights/estimator_resnet50_1,2,3,4,fc.torch")
         readout_dense_10 = ReadoutBottleneckB.load_path(
             model, readout_layers, config['readout_weighs_resnet50'])
     elif model_name == "vgg16":
         readout_feats_str = ",".join(str(f) for f in readout_feats)
-        readout_path = f"pretrained/estim_vgg16/100k_" + readout_feats_str + ",fc.torch"
+        readout_path = f"weights/estimator_vgg16_" + readout_feats_str + ",fc.torch"
         readout_group.load(readout_path)
         readout_dense_10 = ReadoutBottleneckA.load_path(
             model, readout_layers, config['readout_weighs_vgg16'])
@@ -104,7 +103,7 @@ def get_model_and_attribution_method(config):
         'Occlusion-14x14': lambda: lit.Occlusion(patch_size=14),
         'Occlusion-8x8': lambda: lit.Occlusion(patch_size=8),
         'Random': lambda: lit.Random(),
-        'PatternAttribution': lambda: lit.PatternAttribution(),
+        # 'PatternAttribution': lambda: lit.PatternAttribution(),
         'LRP': lambda: lit.LRP()
     }[config['attribution_name']]()
 
