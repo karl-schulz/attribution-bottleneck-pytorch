@@ -25,8 +25,8 @@ except IndexError:
 
 
 if testing:
-    n_samples = 1
-    n_log_steps = 1
+    n_samples = 10
+    n_log_steps = 3
     print("testing run. reducing samples to", n_samples)
 else:
     n_samples = 1000
