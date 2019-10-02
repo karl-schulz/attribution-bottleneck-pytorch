@@ -32,6 +32,12 @@ class Factory:
         """ https://arxiv.org/abs/1605.01713 """
         return GradientTimesInput(self.model)
 
+    def PatternAttribution(self):
+        from attribution_bottleneck.attribution.pattern import PatternAttribution
+        assert hasattr(self.model, "features") and hasattr(self.model, "classifier"), \
+            "PatternAttribution requires VGG"
+        return PatternAttribution(self.model)
+
     def LRP(self):
         return LRP(self.model, eps=5, beta=-1, device=self.device)
 

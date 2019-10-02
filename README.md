@@ -1,13 +1,16 @@
-# The Attribution Bottleneck
+# Code for the Paper "Restricting the Flow: Information Bottlenecks for Attribution"
 
-This is the source code for the paper "Information Bottleneck for Attribution:
-What is Sufficient for Prediction?".
+This is the source code for the paper ["Restricting the Flow: Information Bottlenecks for Attribution"](https://openreview.net/forum?id=S1xWh1rYwB) under review for ICLR2020.
+<p align="center"> 
+    <img alt="Example GIF" width="300" src="monkeys.gif"><br>
+    Iterations of the Per-Sample Bottleneck
+</p>
 
 ## Setup
 
 1. Clone this repository:
     ```
-    $ git clone [URL] && cd attribution-bottleneck-pytorch
+    $ git clone https://github.com/attribution-bottleneck/attribution-bottleneck-pytorch.git && cd attribution-bottleneck-pytorch
     ```
 2. Create a conda environment with all packages:
    ```
@@ -19,7 +22,7 @@ What is Sufficient for Prediction?".
    $ pip install .
     ```
 
-4. Download the model weights from the [release page](releases) and unpack them
+4. Download the model weights from the [release page](https://github.com/attribution-bottleneck/attribution-bottleneck-pytorch/releases/tag/v1) and unpack them
    in the repository root directory:
    ```
    $ tar -xvf bottleneck_for_attribution_weights.tar.gz
