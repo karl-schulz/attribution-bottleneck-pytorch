@@ -132,6 +132,35 @@ class DegradationEval(Evaluation):
 class SensitivityN(Evaluation):
     pass
 
+
+def run_evaluation(evaluator, meth, samples, n_samples=None, progbar=True, show_heatmap=False):
+    results = []
+    total_ms = 0
+    device = next(iter(evaluator.model.parameters())).device
+    for sample in tqdm(samples, desc="Evaluating", disable=not progbar,
+                       total=n_samples, ascii=True):
+        sample = sample[0].to(device), sample[1].to(device)
+        start = time.time()
+        hmap = meth.heatmap(sample[0], sample[1])
+        total_ms += time.time() - start
+        if show_heatmap:
+            show_img(hmap)
+
+        result = evaluator.eval(hmap, sample[0].clone(), sample[1])
+        results.append(result)
+    results_stacked = {}
+
+    stacked = {}
+    for item in results[0].keys():
+        stacked[item] = []
+        for result in results:
+            stacked[item].append(result[item])
+    results_stacked = {item: np.stack(res) for item, res in stacked.items()}
+    total_ms_int = int(total_ms * 1000.0 / len(results))
+
+    return results_stacked, total_ms_int
+
+
 class Collector:
     """ Use a evaluator+samples to evaluate multiple methods """
 

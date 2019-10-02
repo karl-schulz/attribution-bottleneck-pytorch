@@ -1,13 +1,13 @@
 #!/bin/bash
 #SBATCH --nodes 1
 #SBATCH --ntasks 1
-#SBATCH --cpus-per-task 10
+#SBATCH --cpus-per-task 6
 #SBATCH --qos long
 #SBATCH --qos long
 #SBATCH --mem=46GB
 #SBATCH --time 3-12:00:00
-#SBATCH --job-name eval
-#SBATCH --output log/bbox-%A_%a.log
+#SBATCH --job-name bbox
+#SBATCH --output log/%A_%a.log
 #SBATCH --gres=gpu:1
 #SBATCH --partition gpu
 
@@ -21,11 +21,11 @@ echo Got task file: $TASK_FILE
 cat $TASK_FILE
 
 echo Got task at line ${SLURM_ARRAY_TASK_ID}:
-sed -n ${SLURM_ARRAY_TASK_ID}n $TASK_FILE
-
 
 ARGS=$(sed -n ${SLURM_ARRAY_TASK_ID}p $TASK_FILE)
 ARGS=($ARGS)
+
+echo ${ARGS[@]}
 
 echo -e "running on ${node} with ${user}"
 
@@ -40,5 +40,5 @@ echo ""
 cd ..
 
 
-echo python ./scripts/eval_bounding_boxes.py "${ARGS[@]}"
+echo python ./scripts/eval_bounding_boxes.py ${ARGS[@]}
 python ./scripts/eval_bounding_boxes.py ${ARGS[@]}

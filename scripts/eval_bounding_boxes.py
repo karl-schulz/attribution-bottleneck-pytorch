@@ -177,8 +177,8 @@ ratio_mask_to_image = np.array(ratio_mask_to_image)
 ratio_top_in_bbox = np.array(ratio_top_in_bbox)
 
 result_dir = config['result_dir']
-if "SLURM_ARRAY_TASK_ID" in os.environ:
-    result_dir = os.path.join(result_dir, os.environ['SLURM_ARRAY_TASK_ID'])
+if "SLURM_ARRAY_JOB_ID" in os.environ:
+    result_dir = os.path.join(result_dir, os.environ['SLURM_ARRAY_JOB_ID'])
 os.makedirs(result_dir, exist_ok=True)
 
 slurm_job_id = int(os.getenv("SLURM_JOB_ID", 0))

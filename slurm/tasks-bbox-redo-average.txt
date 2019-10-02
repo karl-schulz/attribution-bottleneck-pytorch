@@ -1,0 +1,4 @@
+resnet50 Int_Grad
+vgg16 Int_Grad
+resnet50 Smoothgrad
+vgg16 Smoothgrad

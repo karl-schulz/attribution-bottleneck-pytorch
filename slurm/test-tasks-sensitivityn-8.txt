@@ -1,0 +1,3 @@
+vgg16 8 PatternAttribution test
+vgg16 8 Fitted test
+vgg16 8 Readout_Dense_10 test

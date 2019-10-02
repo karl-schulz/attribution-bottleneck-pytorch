@@ -68,7 +68,7 @@ def get_model_and_attribution_method(config):
 
     # Prepare data
     model = model.to(config["device"])
-
+    model.eval()
     print("Model is now on", config["device"])
     sys.stdout.flush()
 
@@ -100,6 +100,7 @@ def get_model_and_attribution_method(config):
         'Int_Grad': lambda: lit.IntegratedGradients(),
         'Guided_Backpropagation': lambda: lit.GuidedBackprop(),
         'Grad-CAM': lambda: lit.GradCAM(gcam_layer),
+        'GuidedGrad-CAM': lambda: lit.GuidedGradCAM(gcam_layer),
         'Occlusion-14x14': lambda: lit.Occlusion(patch_size=14),
         'Occlusion-8x8': lambda: lit.Occlusion(patch_size=8),
         'Random': lambda: lit.Random(),

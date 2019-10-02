@@ -123,7 +123,8 @@ class ReadoutBottleneck(AttributionBottleneck):
 
         # Normalize x
         x_norm = (x - self.mean_0) / self.std_0
-        mu, log_var = x_norm * lamb, torch.log(1-lamb)
+        mu = x_norm * lamb
+        log_var = torch.log((1-lamb)**2)
 
         # Sampling step
         # Sample new output values from p(z|x)

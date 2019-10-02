@@ -168,18 +168,25 @@ for n_tiles in n_tiles_eval_points:
 
     score_diff = np.stack(score_diffs)
     sum_masked_relevance = np.stack(sum_masked_relevance_all)
-    corrcoef = np.corrcoef(sum_masked_relevance.flatten(), score_diff.flatten())
+
+    corrs = []
+    for i in range(score_diff.shape[0]):
+        corrs.append(np.corrcoef(score_diff[i, :], sum_masked_relevance[i, :])[1, 0])
+    corrcoef = np.mean(corrs)
+
     results.append({
         'n_tiles': n_tiles,
         'score_diff': score_diff,
         'sum_masked_relevance': sum_masked_relevance,
         'corrcoef': corrcoef,
     })
-    print('correlation for {}: {:.3f}'.format(n_tiles, corrcoef[1, 0]))
+    print('correlation for {}: {:.3f}'.format(n_tiles, corrcoef))
     sys.stdout.flush()
 
 
 result_dir = config['result_dir']
+if "SLURM_ARRAY_JOB_ID" in os.environ:
+    result_dir = os.path.join(result_dir, os.environ['SLURM_ARRAY_JOB_ID'])
 os.makedirs(result_dir, exist_ok=True)
 
 slurm_job_id = int(os.getenv("SLURM_JOB_ID", 0))

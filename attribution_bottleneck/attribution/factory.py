@@ -1,11 +1,11 @@
-from attribution_bottleneck.attribution.backprop import Gradient, GradientTimesInput
+from attribution_bottleneck.attribution.backprop import Gradient, Saliency, GradientTimesInput
 from attribution_bottleneck.attribution.guided_backprop import GuidedBackprop, DeconvNet
 from attribution_bottleneck.attribution.averaging_gradient import IntegratedGradients, SmoothGrad
 from attribution_bottleneck.attribution.grad_cam import GradCAM, GuidedGradCAM
 from attribution_bottleneck.attribution.occlusion import Occlusion
 from attribution_bottleneck.attribution.lrp import LRP
 from attribution_bottleneck.attribution.misc import Random, Zero
-from attribution_bottleneck.utils.baselines import Mean
+from attribution_bottleneck.utils.baselines import Mean, ZeroBaseline
 import torch
 from torch.nn import Softmax
 
@@ -43,7 +43,7 @@ class Factory:
 
     def Saliency(self):
         """ https://arxiv.org/abs/1312.6034 """
-        return Gradient(self.model)
+        return Saliency(self.model)
 
     def GuidedBackprop(self):
         """ https://arxiv.org/abs/1412.6806 """
@@ -55,8 +55,7 @@ class Factory:
 
     def IntegratedGradients(self):
         """ https://arxiv.org/abs/1703.01365 """
-        # todo ist nicht gut, etwas fehlt wohl
-        return IntegratedGradients(Gradient(self.model), baseline=Mean(), steps=50)
+        return IntegratedGradients(Saliency(self.model), baseline=Mean(), steps=50)
 
     def Occlusion(self, patch_size):
         """ TODO CITATION """
@@ -64,8 +63,7 @@ class Factory:
 
     def SmoothGrad(self):
         """ https://arxiv.org/abs/1706.03825 """
-        # welche transforms?
-        return SmoothGrad(Gradient(self.model), std=0.15, steps=50)
+        return SmoothGrad(Saliency(self.model), std=0.15, steps=50)
 
     def GradCAM(self, layer):
         """ https://arxiv.org/abs/1610.02391 """

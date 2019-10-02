@@ -71,7 +71,8 @@ class PerSampleBottleneck(AttributionBottleneck):
         x_norm = (x - self.mean) / self.std
 
         # Get sampling parameters
-        mu, log_var = x_norm * lamb, torch.log(1-lamb)
+        mu = x_norm * lamb
+        log_var = torch.log((1-lamb)**2)
 
         # Sample new output values from p(z|x)
         z_norm = self._sample_z(mu, log_var)

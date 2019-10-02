@@ -5,11 +5,10 @@ from attribution_bottleneck.attribution.base import AttributionMethod
 
 # from ..attribution.base import AttributionMethod
 from attribution_bottleneck.attribution.backprop import ModifiedBackpropMethod
-from tqdm import tqdm
-
+import numpy as np
 
 from ..utils.baselines import Mean, Baseline
-from ..utils.misc import *
+from ..utils.misc import to_np_img, to_img_tensor
 
 
 class AveragingGradient(AttributionMethod):
@@ -31,14 +30,10 @@ class AveragingGradient(AttributionMethod):
         assert len(images[0].shape) == 4, "{} makes dim {} !".format(images[0].shape, len(images[0].shape))  # C x N x N
 
         grads = self._backpropagate_multiple(images, target_t)
-
         # Reduce sample dimension
         grads_mean = np.mean(grads, axis=0)
-        # Reduce batch dimension
-        grads_rgb = np.mean(grads_mean, axis=0)
-        # Reduce color dimension
-        heatmap = np.mean(grads_rgb, axis=0)
-        return heatmap
+        grad_np = to_np_img(grads_mean)
+        return self.backprop._transform_gradient(grad_np)
 
     def _backpropagate_multiple(self, inputs: list, target_t: torch.Tensor):
         """
@@ -46,17 +41,10 @@ class AveragingGradient(AttributionMethod):
         shape: N_Inputs x Batches=1 x Color Channels x Height x Width
         """
         # Preallocate empty gradient stack
-        grads = np.zeros((len(inputs), *inputs[0].shape))
-        # Generate gradients
-        iterator = tqdm(range(len(inputs)), ncols=100, desc="calc grad") if len(inputs) > 1 and self.progbar else range(len(inputs))
-        for i in iterator:
-            grad = self.backprop._calc_gradient(input_t=inputs[i], target_t=target_t)
-            # If required, add color dimension
-            if len(grad.shape) == 3:
-                np.expand_dims(grad, axis=0)
-            grads[i, :, :, :, :] = grad
-
-        return grads
+        #
+        inputs = torch.cat(inputs, 0)
+        grad = self.backprop._calc_gradient(input_t=inputs, target_t=target_t)
+        return grad.to('cpu').numpy()
 
     def _get_samples(self, img_t: torch.Tensor) -> list:
         """ yield the samples to analyse """
@@ -91,4 +79,3 @@ class IntegratedGradients(AveragingGradient):
         bl_img = self.baseline.apply(to_np_img(img_t))
         bl_img_t = to_img_tensor(bl_img, device=img_t.device)
         return [((i / self.steps) * (img_t - bl_img_t) + bl_img_t) for i in range(1, self.steps + 1)]
-

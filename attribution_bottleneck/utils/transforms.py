@@ -54,6 +54,7 @@ class HeatmapTransform:
         idxes = [tuple(i) for i in np.stack(idxes)]  # TODO double np.stack ???#
         return idxes
 
+
 class MaxMagnitude(HeatmapTransform):
     """ at each pixel, take the value of the color with the highest absolute value """
     def apply_transform2(self, hmap: np.ndarray):

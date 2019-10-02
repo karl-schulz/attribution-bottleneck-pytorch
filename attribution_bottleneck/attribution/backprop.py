@@ -80,9 +80,7 @@ class ModifiedBackpropMethod(AttributionMethod):
 
         # Calculate gradient w.r.t target
         target_idx = target_t.item() if isinstance(target_t, torch.Tensor) else target_t
-        grad_eval_point = torch.zeros(device=input_t.device, size=logits.shape)
-        grad_eval_point[0][target_idx] = 1.0  # "One-hot"
-        logits.backward(gradient=grad_eval_point)
+        logits[:, target_idx].mean().backward()
 
         return img_var.grad
 
