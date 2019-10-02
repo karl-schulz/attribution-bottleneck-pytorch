@@ -88,22 +88,22 @@ def get_model_and_attribution_method(config):
 
     attribution = {
         'Fitted': lambda: PerSampleBottleneckReader(model, readout_group.estimators[1]),
-        'Fitted beta1': lambda: PerSampleBottleneckReader(
+        'Fitted_beta1': lambda: PerSampleBottleneckReader(
             model, readout_group.estimators[1], beta=1),
-        'Fitted beta100': lambda: PerSampleBottleneckReader(
+        'Fitted_beta100': lambda: PerSampleBottleneckReader(
             model, readout_group.estimators[1], beta=100),
-        'Readout Dense 10': lambda: ReadoutBottleneckReader(
+        'Readout_Dense_10': lambda: ReadoutBottleneckReader(
             model, readout_layers[0], readout_dense_10),
         'Gradient': lambda: lit.Gradient(),
         'Saliency': lambda: lit.Saliency(),
-        'Smoothgrad (of Saliency)': lambda: lit.SmoothGrad(),
-        'Int. Grad. (of Saliency)': lambda: lit.IntegratedGradients(),
-        'Guided Backpropagation': lambda: lit.GuidedBackprop(),
+        'Smoothgrad': lambda: lit.SmoothGrad(),
+        'Int_Grad': lambda: lit.IntegratedGradients(),
+        'Guided_Backpropagation': lambda: lit.GuidedBackprop(),
         'Grad-CAM': lambda: lit.GradCAM(gcam_layer),
         'Occlusion-14x14': lambda: lit.Occlusion(patch_size=14),
         'Occlusion-8x8': lambda: lit.Occlusion(patch_size=8),
         'Random': lambda: lit.Random(),
-        # 'PatternAttribution': lambda: lit.PatternAttribution(),
+        'PatternAttribution': lambda: lit.PatternAttribution(),
         'LRP': lambda: lit.LRP()
     }[config['attribution_name']]()
 

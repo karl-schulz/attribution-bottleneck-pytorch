@@ -35,7 +35,7 @@ else:
 
 model_name = sys.argv[1]
 
-assert model_name in ['resnet50', 'vgg16']
+assert model_name in ['resnet50', 'vgg16'], "Got model_name: " + model_name
 attribution_name = sys.argv[2]
 
 config = get_default_config()
@@ -177,9 +177,12 @@ ratio_mask_to_image = np.array(ratio_mask_to_image)
 ratio_top_in_bbox = np.array(ratio_top_in_bbox)
 
 result_dir = config['result_dir']
+if "SLURM_ARRAY_TASK_ID" in os.environ:
+    result_dir = os.path.join(result_dir, os.environ['SLURM_ARRAY_TASK_ID'])
 os.makedirs(result_dir, exist_ok=True)
 
 slurm_job_id = int(os.getenv("SLURM_JOB_ID", 0))
+
 result_filename = "bbox_{}_{}_{}_{}.torch".format(
     config['model_name'],
     config['attribution_name'].replace(" ", "_").replace(".", "_"),
