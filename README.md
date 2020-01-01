@@ -1,6 +1,9 @@
 # Code for the Paper "Restricting the Flow: Information Bottlenecks for Attribution"
 
 This is the source code for the paper ["Restricting the Flow: Information Bottlenecks for Attribution"](https://openreview.net/forum?id=S1xWh1rYwB)  - Oral at ICLR2020.
+
+<b>Note:</b> This implementation might not be up-to-date. The reference implementation is in <a href="https://github.com/attribution-bottleneck/attribution-bottleneck-pytorch">another repository</a>
+
 <p align="center"> 
     <img alt="Example GIF" width="300" src="monkeys.gif"><br>
     Iterations of the Per-Sample Bottleneck
